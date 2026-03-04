@@ -1,0 +1,9 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.actdigital</groupId>
+  <artifactId>order-manager</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>war</packaging>
+  <name>order-manager</name>
+  <description>This is a simple exercise, a simple order manager. You should develop an API where users can create and manage orders. Items can be ordered and orders are automatically fulfilled as soon as the item stock allows it. Specification The system should be able to provide the following features: - create, read, update and delete and list all entities; - when an order is created, it should try to satisfy it with the current stock.; - when a stock movement is created, the system should try to attribute it to an order that isn't complete; - when an order is complete, send a notification by email to the user that created it; - trace the list of stock movements that were used to complete the order, and vice-versa; - show current completion of each order; - Write a log file with: orders completed, stock movements, email sent and errors.</description>
+</project>
