@@ -3,6 +3,7 @@
     <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
     
     <class>pt.agap2.ordermanager.user.entity.UserEntity</class>
+    <class>pt.agap2.ordermanager.item.entity.ItemEntity</class>
 
     <properties>
       <property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver"/>
