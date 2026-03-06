@@ -1,0 +1,22 @@
+<persistence xmlns="http://xmlns.jcp.org/xml/ns/persistence" version="2.1">
+  <persistence-unit name="orderManagerPU" transaction-type="RESOURCE_LOCAL">
+    <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+    
+    <class>pt.agap2.ordermanager.user.entity.UserEntity</class>
+
+    <properties>
+      <property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver"/>
+      <property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/order_manager"/>
+      <property name="javax.persistence.jdbc.user" value="root"/>
+      <property name="javax.persistence.jdbc.password" value="root"/>
+
+      <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/>
+
+      <!-- Para avaliação: cria/atualiza schema automaticamente -->
+      <property name="hibernate.hbm2ddl.auto" value="update"/>
+
+      <property name="hibernate.show_sql" value="false"/>
+      <property name="hibernate.format_sql" value="false"/>
+    </properties>
+  </persistence-unit>
+</persistence>

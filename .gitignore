@@ -1,0 +1,32 @@
+/target/
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# Logs
+*.log
+
+# Eclipse
+.project
+.classpath
+.settings/
+.metadata/
+
+# IntelliJ (caso alguém use)
+.idea/
+*.iml
+
+# VSCode
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+*.war
+*.ear
+
+# Temporary
+tmp/
+temp/
