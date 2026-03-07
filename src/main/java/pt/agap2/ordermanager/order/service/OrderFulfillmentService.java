@@ -4,10 +4,13 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 
+import org.apache.logging.log4j.Logger;
+
 import pt.agap2.ordermanager.order.entity.OrderEntity;
 import pt.agap2.ordermanager.order.entity.OrderStockMovementEntity;
 import pt.agap2.ordermanager.order.repository.IOrderRepository;
 import pt.agap2.ordermanager.order.repository.IOrderStockMovementRepository;
+import pt.agap2.ordermanager.shared.Log;
 import pt.agap2.ordermanager.stock.entity.StockMovementEntity;
 import pt.agap2.ordermanager.stock.repository.IStockMovementRepository;
 
@@ -16,6 +19,8 @@ public class OrderFulfillmentService implements IOrderFulfillmentService {
 	private final IOrderRepository orderRepository;
 	private final IStockMovementRepository stockRepository;
 	private final IOrderStockMovementRepository trackingRepository;
+	
+	private static final Logger logger = Log.getLogger(OrderFulfillmentService.class);
 
 	public OrderFulfillmentService(
 			IOrderRepository orderRepository,
@@ -55,6 +60,13 @@ public class OrderFulfillmentService implements IOrderFulfillmentService {
 			tracking.setQuantityUsed(usedNow);
 			trackingRepository.persist(em, tracking);
 
+			logger.info(
+					"STOCK_ALLOCATED orderId={} stockMovementId={} quantityUsed={}",
+					order.getId(),
+					movement.getId(),
+					usedNow
+				);
+			
 			order.setFulfilledQuantity(order.getFulfilledQuantity() + usedNow);
 			missing -= usedNow;
 		}
@@ -84,6 +96,13 @@ public class OrderFulfillmentService implements IOrderFulfillmentService {
 			tracking.setStockMovement(movement);
 			tracking.setQuantityUsed(usedNow);
 			trackingRepository.persist(em, tracking);
+			
+			logger.info(
+					"STOCK_ALLOCATED orderId={} stockMovementId={} quantityUsed={}",
+					order.getId(),
+					movement.getId(),
+					usedNow
+				);
 
 			order.setFulfilledQuantity(order.getFulfilledQuantity() + usedNow);
 		}

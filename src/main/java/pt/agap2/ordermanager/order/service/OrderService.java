@@ -5,6 +5,8 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 
+import org.apache.logging.log4j.Logger;
+
 import pt.agap2.ordermanager.item.entity.ItemEntity;
 import pt.agap2.ordermanager.order.dto.OrderCompletionResponseDTO;
 import pt.agap2.ordermanager.order.entity.OrderEntity;
@@ -13,6 +15,7 @@ import pt.agap2.ordermanager.order.repository.IOrderRepository;
 import pt.agap2.ordermanager.order.repository.IOrderStockMovementRepository;
 import pt.agap2.ordermanager.order.repository.OrderStockMovementRepository;
 import pt.agap2.ordermanager.shared.Jpa;
+import pt.agap2.ordermanager.shared.Log;
 import pt.agap2.ordermanager.user.entity.UserEntity;
 
 public class OrderService implements IOrderService {
@@ -21,15 +24,13 @@ public class OrderService implements IOrderService {
 	private final IOrderFulfillmentService fulfillmentService;
 	private final IOrderStockMovementRepository trackingRepository;
 
-	
+	private static final Logger logger = Log.getLogger(OrderService.class);
+
 	public OrderService(IOrderRepository repository) {
 		this.repository = repository;
 		this.trackingRepository = new OrderStockMovementRepository();
-		this.fulfillmentService = new OrderFulfillmentService(
-				repository,
-				new pt.agap2.ordermanager.stock.repository.StockMovementRepository(),
-				trackingRepository
-		);
+		this.fulfillmentService = new OrderFulfillmentService(repository,
+				new pt.agap2.ordermanager.stock.repository.StockMovementRepository(), trackingRepository);
 	}
 
 	@Override
@@ -56,12 +57,22 @@ public class OrderService implements IOrderService {
 
 			repository.persist(em, order);
 
+			logger.info("ORDER_CREATED id={} userId={} itemId={} quantity={}", order.getId(), user.getId(),
+					item.getId(), order.getQuantity());
+
 			fulfillmentService.fulfillOrder(em, order);
+
+			if (order.isCompleted()) {
+				logger.info("ORDER_COMPLETED id={} userId={} itemId={} quantity={} fulfilledQuantity={}", order.getId(),
+						order.getUser().getId(), order.getItem().getId(), order.getQuantity(),
+						order.getFulfilledQuantity());
+			}
 
 			em.getTransaction().commit();
 			return order;
 
 		} catch (Exception e) {
+			logger.error("ERROR_CREATING_ORDER userId={} itemId={} quantity={}", userId, itemId, quantity, e);
 			if (em.getTransaction().isActive()) {
 				em.getTransaction().rollback();
 			}
@@ -94,7 +105,7 @@ public class OrderService implements IOrderService {
 			em.close();
 		}
 	}
-	
+
 	@Override
 	public OrderCompletionResponseDTO getCompletion(Long orderId) {
 		EntityManager em = Jpa.em();
@@ -110,14 +121,7 @@ public class OrderService implements IOrderService {
 			boolean completed = fulfilled >= quantity;
 			double percentage = quantity == 0 ? 0.0 : (fulfilled * 100.0) / quantity;
 
-			return new OrderCompletionResponseDTO(
-					order.getId(),
-					quantity,
-					fulfilled,
-					remaining,
-					completed,
-					percentage
-			);
+			return new OrderCompletionResponseDTO(order.getId(), quantity, fulfilled, remaining, completed, percentage);
 		} finally {
 			em.close();
 		}
