@@ -12,6 +12,10 @@ import pt.agap2.ordermanager.order.service.IOrderFulfillmentService;
 import pt.agap2.ordermanager.order.service.IOrderService;
 import pt.agap2.ordermanager.order.service.OrderFulfillmentService;
 import pt.agap2.ordermanager.order.service.OrderService;
+import pt.agap2.ordermanager.order.strategy.FifoAllocationStrategy;
+import pt.agap2.ordermanager.order.strategy.IAllocationStrategy;
+import pt.agap2.ordermanager.shared.EmailService;
+import pt.agap2.ordermanager.shared.IEmailService;
 import pt.agap2.ordermanager.stock.repository.IStockMovementRepository;
 import pt.agap2.ordermanager.stock.repository.StockMovementRepository;
 import pt.agap2.ordermanager.stock.service.IStockMovementService;
@@ -29,8 +33,14 @@ public final class ApplicationContext {
 	private static final IOrderRepository ORDER_REPOSITORY = new OrderRepository();
 	private static final IOrderStockMovementRepository ORDER_STOCK_MOVEMENT_REPOSITORY = new OrderStockMovementRepository();
 
+	private static final IEmailService EMAIL_SERVICE = new EmailService();
+
+	private static final IAllocationStrategy ALLOCATION_STRATEGY = new FifoAllocationStrategy(
+			ORDER_STOCK_MOVEMENT_REPOSITORY);
+
 	private static final IOrderFulfillmentService ORDER_FULFILLMENT_SERVICE = new OrderFulfillmentService(
-			ORDER_REPOSITORY, STOCK_MOVEMENT_REPOSITORY, ORDER_STOCK_MOVEMENT_REPOSITORY);
+			ORDER_REPOSITORY, STOCK_MOVEMENT_REPOSITORY, ORDER_STOCK_MOVEMENT_REPOSITORY, EMAIL_SERVICE,
+			ALLOCATION_STRATEGY);
 
 	private static final IUserService USER_SERVICE = new UserService(USER_REPOSITORY);
 
