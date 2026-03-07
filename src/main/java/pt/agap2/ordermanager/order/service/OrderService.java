@@ -14,6 +14,7 @@ import pt.agap2.ordermanager.order.entity.OrderStockMovementEntity;
 import pt.agap2.ordermanager.order.repository.IOrderRepository;
 import pt.agap2.ordermanager.order.repository.IOrderStockMovementRepository;
 import pt.agap2.ordermanager.order.repository.OrderStockMovementRepository;
+import pt.agap2.ordermanager.shared.EmailService;
 import pt.agap2.ordermanager.shared.Jpa;
 import pt.agap2.ordermanager.shared.Log;
 import pt.agap2.ordermanager.user.entity.UserEntity;
@@ -25,6 +26,7 @@ public class OrderService implements IOrderService {
 	private final IOrderStockMovementRepository trackingRepository;
 
 	private static final Logger logger = Log.getLogger(OrderService.class);
+	private final EmailService emailService = new EmailService();
 
 	public OrderService(IOrderRepository repository) {
 		this.repository = repository;
@@ -66,6 +68,8 @@ public class OrderService implements IOrderService {
 				logger.info("ORDER_COMPLETED id={} userId={} itemId={} quantity={} fulfilledQuantity={}", order.getId(),
 						order.getUser().getId(), order.getItem().getId(), order.getQuantity(),
 						order.getFulfilledQuantity());
+
+				emailService.sendOrderCompletedEmail(order.getUser().getEmail(), order.getId());
 			}
 
 			em.getTransaction().commit();

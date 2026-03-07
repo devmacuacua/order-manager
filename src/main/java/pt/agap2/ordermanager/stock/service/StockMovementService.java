@@ -55,7 +55,7 @@ public class StockMovementService implements IStockMovementService {
 
 			logger.info("STOCK_MOVEMENT_CREATED id={} itemId={} quantity={}", entity.getId(), entity.getItem().getId(),
 					entity.getQuantity());
-
+	
 			em.getTransaction().commit();
 			return entity;
 		} catch (Exception e) {
