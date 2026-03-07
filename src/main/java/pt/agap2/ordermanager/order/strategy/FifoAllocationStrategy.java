@@ -7,6 +7,7 @@ import javax.persistence.EntityManager;
 
 import pt.agap2.ordermanager.order.entity.OrderEntity;
 import pt.agap2.ordermanager.order.repository.IOrderStockMovementRepository;
+import pt.agap2.ordermanager.shared.domain.valueobject.Quantity;
 import pt.agap2.ordermanager.stock.entity.StockMovementEntity;
 
 public class FifoAllocationStrategy implements IAllocationStrategy {
@@ -24,28 +25,28 @@ public class FifoAllocationStrategy implements IAllocationStrategy {
 			List<StockMovementEntity> stockMovements) {
 
 		List<AllocationDecision> decisions = new ArrayList<>();
-		int missing = order.getQuantity() - order.getFulfilledQuantity();
+		Quantity missing = order.remainingQuantityValue();
 
-		if (missing <= 0) {
+		if (!missing.isPositive()) {
 			return decisions;
 		}
 
 		for (StockMovementEntity movement : stockMovements) {
-			if (missing <= 0) {
+			if (!missing.isPositive()) {
 				break;
 			}
 
 			int alreadyUsed = trackingRepository.sumUsedByStockMovement(em, movement);
-			int available = movement.getQuantity() - alreadyUsed;
 
-			if (available <= 0) {
+			if (!movement.hasAvailableQuantity(alreadyUsed)) {
 				continue;
 			}
 
-			int usedNow = Math.min(available, missing);
+			Quantity available = movement.availableQuantityValue(alreadyUsed);
+			Quantity usedNow = available.min(missing);
 
-			decisions.add(new AllocationDecision(order, movement, usedNow));
-			missing -= usedNow;
+			decisions.add(new AllocationDecision(order, movement, usedNow.value()));
+			missing = missing.subtract(usedNow);
 		}
 
 		return decisions;
@@ -61,20 +62,20 @@ public class FifoAllocationStrategy implements IAllocationStrategy {
 
 		for (OrderEntity order : pendingOrders) {
 			int alreadyUsed = trackingRepository.sumUsedByStockMovement(em, movement);
-			int available = movement.getQuantity() - alreadyUsed;
 
-			if (available <= 0) {
+			if (!movement.hasAvailableQuantity(alreadyUsed)) {
 				break;
 			}
 
-			int missing = order.getQuantity() - order.getFulfilledQuantity();
-			if (missing <= 0) {
+			Quantity missing = order.remainingQuantityValue();
+			if (!missing.isPositive()) {
 				continue;
 			}
 
-			int usedNow = Math.min(available, missing);
+			Quantity available = movement.availableQuantityValue(alreadyUsed);
+			Quantity usedNow = available.min(missing);
 
-			decisions.add(new AllocationDecision(order, movement, usedNow));
+			decisions.add(new AllocationDecision(order, movement, usedNow.value()));
 		}
 
 		return decisions;

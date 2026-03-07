@@ -6,6 +6,8 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
+import pt.agap2.ordermanager.shared.infrastructure.Jpa;
+
 @WebListener
 public class DatabaseHealthCheckListener implements ServletContextListener {
 

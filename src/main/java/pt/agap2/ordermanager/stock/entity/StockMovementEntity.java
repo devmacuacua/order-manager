@@ -1,4 +1,3 @@
-
 package pt.agap2.ordermanager.stock.entity;
 
 import java.time.LocalDateTime;
@@ -12,9 +11,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-
 import pt.agap2.ordermanager.item.entity.ItemEntity;
+import pt.agap2.ordermanager.shared.domain.valueobject.Quantity;
 
 @Entity
 @Table(name = "stock_movements")
@@ -28,7 +26,6 @@ public class StockMovementEntity {
 	private Integer quantity;
 
 	@Column(name = "creation_date", nullable = false)
-	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 	private LocalDateTime creationDate;
 
 	@ManyToOne(optional = false)
@@ -61,5 +58,45 @@ public class StockMovementEntity {
 
 	public void setItem(ItemEntity item) {
 		this.item = item;
+	}
+
+	// =========================
+	// Domain behavior
+	// =========================
+
+	public Quantity totalQuantity() {
+		return Quantity.of(quantity);
+	}
+
+	public Quantity usedQuantity(int alreadyUsed) {
+		validateTrackedQuantity(alreadyUsed);
+		return Quantity.of(alreadyUsed);
+	}
+
+	public Quantity availableQuantityValue(int alreadyUsed) {
+		validateTrackedQuantity(alreadyUsed);
+		return totalQuantity().subtract(usedQuantity(alreadyUsed));
+	}
+
+	public int availableQuantity(int alreadyUsed) {
+		return availableQuantityValue(alreadyUsed).value();
+	}
+
+	public boolean isFullyAllocated(int alreadyUsed) {
+		return usedQuantity(alreadyUsed).greaterThanOrEqual(totalQuantity());
+	}
+
+	public boolean hasAvailableQuantity(int alreadyUsed) {
+		return availableQuantityValue(alreadyUsed).isPositive();
+	}
+
+	private void validateTrackedQuantity(int alreadyUsed) {
+		if (alreadyUsed < 0) {
+			throw new IllegalArgumentException("Tracked used quantity cannot be negative");
+		}
+
+		if (alreadyUsed > quantity) {
+			throw new IllegalArgumentException("Tracked used quantity cannot exceed stock movement quantity");
+		}
 	}
 }

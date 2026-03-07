@@ -13,6 +13,7 @@ public class OrderMapper {
 				entity.getQuantity(),
 				entity.getFulfilledQuantity(),
 				entity.isCompleted(),
+				entity.status(),
 				entity.getCreationDate()
 		);
 	}

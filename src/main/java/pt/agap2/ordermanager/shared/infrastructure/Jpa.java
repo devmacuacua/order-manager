@@ -1,4 +1,4 @@
-package pt.agap2.ordermanager.shared;
+package pt.agap2.ordermanager.shared.infrastructure;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;

@@ -13,8 +13,8 @@ import pt.agap2.ordermanager.order.entity.OrderEntity;
 import pt.agap2.ordermanager.order.entity.OrderStockMovementEntity;
 import pt.agap2.ordermanager.order.repository.IOrderRepository;
 import pt.agap2.ordermanager.order.repository.IOrderStockMovementRepository;
-import pt.agap2.ordermanager.shared.Jpa;
-import pt.agap2.ordermanager.shared.Log;
+import pt.agap2.ordermanager.shared.infrastructure.Jpa;
+import pt.agap2.ordermanager.shared.infrastructure.Log;
 import pt.agap2.ordermanager.user.entity.UserEntity;
 
 public class OrderService implements IOrderService {
@@ -113,8 +113,8 @@ public class OrderService implements IOrderService {
 
 			int quantity = order.getQuantity();
 			int fulfilled = order.getFulfilledQuantity();
-			int remaining = quantity - fulfilled;
-			boolean completed = fulfilled >= quantity;
+			int remaining = order.remainingQuantity();
+			boolean completed = order.isCompleted();
 			double percentage = quantity == 0 ? 0.0 : (fulfilled * 100.0) / quantity;
 
 			return new OrderCompletionResponseDTO(
@@ -123,7 +123,8 @@ public class OrderService implements IOrderService {
 					fulfilled,
 					remaining,
 					completed,
-					percentage
+					percentage,
+					order.status()
 			);
 		} finally {
 			em.close();

@@ -1,4 +1,4 @@
-package pt.agap2.ordermanager.shared;
+package pt.agap2.ordermanager.shared.infrastructure;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

@@ -4,7 +4,7 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 
-import pt.agap2.ordermanager.shared.Jpa;
+import pt.agap2.ordermanager.shared.infrastructure.Jpa;
 import pt.agap2.ordermanager.user.dto.UserRequestDTO;
 import pt.agap2.ordermanager.user.entity.UserEntity;
 import pt.agap2.ordermanager.user.mapper.UserMapper;
