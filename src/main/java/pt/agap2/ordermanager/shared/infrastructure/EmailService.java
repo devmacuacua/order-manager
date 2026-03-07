@@ -1,4 +1,4 @@
-package pt.agap2.ordermanager.shared;
+package pt.agap2.ordermanager.shared.infrastructure;
 
 import java.io.IOException;
 import java.io.InputStream;

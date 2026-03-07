@@ -12,8 +12,8 @@ import pt.agap2.ordermanager.order.repository.IOrderRepository;
 import pt.agap2.ordermanager.order.repository.IOrderStockMovementRepository;
 import pt.agap2.ordermanager.order.strategy.AllocationDecision;
 import pt.agap2.ordermanager.order.strategy.IAllocationStrategy;
-import pt.agap2.ordermanager.shared.IEmailService;
-import pt.agap2.ordermanager.shared.Log;
+import pt.agap2.ordermanager.shared.infrastructure.IEmailService;
+import pt.agap2.ordermanager.shared.infrastructure.Log;
 import pt.agap2.ordermanager.stock.entity.StockMovementEntity;
 import pt.agap2.ordermanager.stock.repository.IStockMovementRepository;
 
@@ -80,7 +80,7 @@ public class OrderFulfillmentService implements IOrderFulfillmentService {
 
 		boolean completedBefore = order.isCompleted();
 
-		order.setFulfilledQuantity(order.getFulfilledQuantity() + usedNow);
+		order.allocate(usedNow);
 
 		boolean completedAfter = order.isCompleted();
 

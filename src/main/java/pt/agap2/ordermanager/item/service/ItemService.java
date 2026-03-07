@@ -1,13 +1,14 @@
 package pt.agap2.ordermanager.item.service;
 
 import java.util.List;
+
 import javax.persistence.EntityManager;
 
 import pt.agap2.ordermanager.item.dto.ItemRequestDTO;
 import pt.agap2.ordermanager.item.entity.ItemEntity;
 import pt.agap2.ordermanager.item.mapper.ItemMapper;
 import pt.agap2.ordermanager.item.repository.IItemRepository;
-import pt.agap2.ordermanager.shared.Jpa;
+import pt.agap2.ordermanager.shared.infrastructure.Jpa;
 
 public class ItemService implements IItemService {
 
