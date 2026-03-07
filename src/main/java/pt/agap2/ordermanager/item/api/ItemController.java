@@ -3,24 +3,34 @@ package pt.agap2.ordermanager.item.api;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import pt.agap2.ordermanager.ApplicationContext;
 import pt.agap2.ordermanager.item.dto.ItemRequestDTO;
 import pt.agap2.ordermanager.item.dto.ItemResponseDTO;
 import pt.agap2.ordermanager.item.entity.ItemEntity;
 import pt.agap2.ordermanager.item.mapper.ItemMapper;
-import pt.agap2.ordermanager.item.repository.ItemRepository;
 import pt.agap2.ordermanager.item.service.IItemService;
-import pt.agap2.ordermanager.item.service.ItemService;
 
 @Path("/items")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class ItemController {
 
-	private final IItemService service = new ItemService(new ItemRepository());
+	private final IItemService service;
+
+	public ItemController() {
+		this.service = ApplicationContext.itemService();
+	}
 
 	@POST
 	public Response create(ItemRequestDTO dto) {

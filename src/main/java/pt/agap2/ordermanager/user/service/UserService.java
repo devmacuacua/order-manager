@@ -8,13 +8,13 @@ import pt.agap2.ordermanager.shared.Jpa;
 import pt.agap2.ordermanager.user.dto.UserRequestDTO;
 import pt.agap2.ordermanager.user.entity.UserEntity;
 import pt.agap2.ordermanager.user.mapper.UserMapper;
-import pt.agap2.ordermanager.user.repository.UserRepository;
+import pt.agap2.ordermanager.user.repository.IUserRepository;
 
-public class UserService {
+public class UserService implements IUserService{
 
-	private final UserRepository repo;
+	private final IUserRepository repo;
 
-	public UserService(UserRepository repo) {
+	public UserService(IUserRepository repo) {
 		this.repo = repo;
 	}
 

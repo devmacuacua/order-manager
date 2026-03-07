@@ -14,7 +14,7 @@ import javax.mail.internet.MimeMessage;
 
 import org.apache.logging.log4j.Logger;
 
-public class EmailService {
+public class EmailService implements IEmailService {
 
 	private static final Logger logger = Log.getLogger(EmailService.class);
 

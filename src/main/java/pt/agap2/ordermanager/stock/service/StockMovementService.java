@@ -10,9 +10,7 @@ import org.apache.logging.log4j.Logger;
 import pt.agap2.ordermanager.item.entity.ItemEntity;
 import pt.agap2.ordermanager.order.entity.OrderStockMovementEntity;
 import pt.agap2.ordermanager.order.repository.IOrderStockMovementRepository;
-import pt.agap2.ordermanager.order.repository.OrderStockMovementRepository;
 import pt.agap2.ordermanager.order.service.IOrderFulfillmentService;
-import pt.agap2.ordermanager.order.service.OrderFulfillmentService;
 import pt.agap2.ordermanager.shared.Jpa;
 import pt.agap2.ordermanager.shared.Log;
 import pt.agap2.ordermanager.stock.entity.StockMovementEntity;
@@ -21,17 +19,19 @@ import pt.agap2.ordermanager.stock.repository.IStockMovementRepository;
 
 public class StockMovementService implements IStockMovementService {
 
+	private static final Logger logger = Log.getLogger(StockMovementService.class);
+
 	private final IStockMovementRepository repository;
 	private final IOrderFulfillmentService fulfillmentService;
 	private final IOrderStockMovementRepository trackingRepository;
 
-	private static final Logger logger = Log.getLogger(StockMovementService.class);
-
-	public StockMovementService(IStockMovementRepository repository) {
+	public StockMovementService(
+			IStockMovementRepository repository,
+			IOrderFulfillmentService fulfillmentService,
+			IOrderStockMovementRepository trackingRepository) {
 		this.repository = repository;
-		this.trackingRepository = new OrderStockMovementRepository();
-		this.fulfillmentService = new OrderFulfillmentService(
-				new pt.agap2.ordermanager.order.repository.OrderRepository(), repository, trackingRepository);
+		this.fulfillmentService = fulfillmentService;
+		this.trackingRepository = trackingRepository;
 	}
 
 	@Override
@@ -53,9 +53,13 @@ public class StockMovementService implements IStockMovementService {
 
 			fulfillmentService.fulfillPendingOrdersWithMovement(em, entity);
 
-			logger.info("STOCK_MOVEMENT_CREATED id={} itemId={} quantity={}", entity.getId(), entity.getItem().getId(),
-					entity.getQuantity());
-	
+			logger.info(
+					"STOCK_MOVEMENT_CREATED id={} itemId={} quantity={}",
+					entity.getId(),
+					entity.getItem().getId(),
+					entity.getQuantity()
+			);
+
 			em.getTransaction().commit();
 			return entity;
 		} catch (Exception e) {

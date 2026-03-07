@@ -1,7 +1,9 @@
 package pt.agap2.ordermanager.item.repository;
 
 import java.util.List;
+
 import javax.persistence.EntityManager;
+
 import pt.agap2.ordermanager.item.entity.ItemEntity;
 
 public class ItemRepository implements IItemRepository {
@@ -18,7 +20,7 @@ public class ItemRepository implements IItemRepository {
 
 	@Override
 	public List<ItemEntity> findAll(EntityManager em) {
-		return em.createQuery("SELECT i FROM ItemEntity i ORDER BY i.id DESC", ItemEntity.class).getResultList();
+		return em.createQuery(IItemQueries.GET_ITEMS_ORDER_BY_I_ID_DESC, ItemEntity.class).getResultList();
 	}
 
 	@Override

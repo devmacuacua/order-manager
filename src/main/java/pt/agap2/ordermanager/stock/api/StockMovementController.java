@@ -13,23 +13,25 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import pt.agap2.ordermanager.ApplicationContext;
 import pt.agap2.ordermanager.order.dto.OrderStockMovementResponseDTO;
 import pt.agap2.ordermanager.order.mapper.OrderStockMovementMapper;
 import pt.agap2.ordermanager.stock.dto.StockMovementRequestDTO;
 import pt.agap2.ordermanager.stock.dto.StockMovementResponseDTO;
 import pt.agap2.ordermanager.stock.entity.StockMovementEntity;
 import pt.agap2.ordermanager.stock.mapper.StockMovementMapper;
-import pt.agap2.ordermanager.stock.repository.StockMovementRepository;
 import pt.agap2.ordermanager.stock.service.IStockMovementService;
-import pt.agap2.ordermanager.stock.service.StockMovementService;
 
 @Path("/stock-movements")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class StockMovementController {
 
-	private final IStockMovementService service = new StockMovementService(new StockMovementRepository());
+	private final IStockMovementService service;
 
+	public StockMovementController() {
+		this.service =  ApplicationContext.stockMovementService();
+	}
 	@POST
 	public Response create(StockMovementRequestDTO dto) {
 		if (dto == null || dto.getItemId() == null || dto.getQuantity() == null || dto.getQuantity() <= 0) {

@@ -20,20 +20,12 @@ public class OrderRepository implements IOrderRepository {
 
 	@Override
 	public List<OrderEntity> findAll(EntityManager em) {
-		return em.createQuery(
-			"SELECT o FROM OrderEntity o ORDER BY o.creationDate DESC",
-			OrderEntity.class
-		).getResultList();
+		return em.createQuery(IOrderQueries.GET_ORDER_ORDER_BY_O_CREATION_DATE_DESC, OrderEntity.class).getResultList();
 	}
-	
+
 	@Override
 	public List<OrderEntity> findPendingByItem(EntityManager em, Long itemId) {
-		return em.createQuery(
-				"SELECT o FROM OrderEntity o " +
-				"WHERE o.item.id = :itemId AND o.fulfilledQuantity < o.quantity " +
-				"ORDER BY o.creationDate ASC",
-				OrderEntity.class)
-			.setParameter("itemId", itemId)
-			.getResultList();
+		return em.createQuery(IOrderQueries.GET_ORDERS_BY_ITEM_AND_QUANTITY, OrderEntity.class)
+				.setParameter("itemId", itemId).getResultList();
 	}
 }

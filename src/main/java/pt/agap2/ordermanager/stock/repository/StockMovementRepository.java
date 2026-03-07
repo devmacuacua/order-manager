@@ -20,7 +20,7 @@ public class StockMovementRepository implements IStockMovementRepository {
 
 	@Override
 	public List<StockMovementEntity> findAll(EntityManager em) {
-		return em.createQuery("SELECT s FROM StockMovementEntity s ORDER BY s.creationDate DESC",
+		return em.createQuery(IStockMovementQueries.GET_STOCK_MOVEMENTS_ORDER_BY_CREATION_DATE_DESC,
 				StockMovementEntity.class).getResultList();
 	}
 
@@ -31,8 +31,7 @@ public class StockMovementRepository implements IStockMovementRepository {
 
 	@Override
 	public List<StockMovementEntity> findByItem(EntityManager em, Long itemId) {
-		return em.createQuery(
-				"SELECT s FROM StockMovementEntity s WHERE s.item.id = :itemId ORDER BY s.creationDate ASC",
-				StockMovementEntity.class).setParameter("itemId", itemId).getResultList();
+		return em.createQuery(IStockMovementQueries.GET_STOCK_MOVEMENTS_BY_ITEM_ID_ORDER, StockMovementEntity.class)
+				.setParameter("itemId", itemId).getResultList();
 	}
 }

@@ -12,22 +12,25 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import pt.agap2.ordermanager.ApplicationContext;
 import pt.agap2.ordermanager.order.dto.OrderCompletionResponseDTO;
 import pt.agap2.ordermanager.order.dto.OrderRequestDTO;
 import pt.agap2.ordermanager.order.dto.OrderStockMovementResponseDTO;
 import pt.agap2.ordermanager.order.entity.OrderEntity;
 import pt.agap2.ordermanager.order.mapper.OrderMapper;
 import pt.agap2.ordermanager.order.mapper.OrderStockMovementMapper;
-import pt.agap2.ordermanager.order.repository.OrderRepository;
 import pt.agap2.ordermanager.order.service.IOrderService;
-import pt.agap2.ordermanager.order.service.OrderService;
 
 @Path("/orders")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class OrderController {
 
-	private final IOrderService service = new OrderService(new OrderRepository());
+	private final IOrderService service;
+
+	public OrderController() {
+		this.service = ApplicationContext.orderService();
+	}
 
 	@POST
 	public Response create(OrderRequestDTO dto) {
