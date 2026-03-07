@@ -12,9 +12,12 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import pt.agap2.ordermanager.order.dto.OrderCompletionResponseDTO;
 import pt.agap2.ordermanager.order.dto.OrderRequestDTO;
+import pt.agap2.ordermanager.order.dto.OrderStockMovementResponseDTO;
 import pt.agap2.ordermanager.order.entity.OrderEntity;
 import pt.agap2.ordermanager.order.mapper.OrderMapper;
+import pt.agap2.ordermanager.order.mapper.OrderStockMovementMapper;
 import pt.agap2.ordermanager.order.repository.OrderRepository;
 import pt.agap2.ordermanager.order.service.IOrderService;
 import pt.agap2.ordermanager.order.service.OrderService;
@@ -39,17 +42,12 @@ public class OrderController {
 			return Response.status(Response.Status.BAD_REQUEST).entity("User or Item not found").build();
 		}
 
-		return Response.status(Response.Status.CREATED)
-				.entity(OrderMapper.toResponse(created))
-				.build();
+		return Response.status(Response.Status.CREATED).entity(OrderMapper.toResponse(created)).build();
 	}
 
 	@GET
 	public List<?> list() {
-		return service.list()
-				.stream()
-				.map(OrderMapper::toResponse)
-				.collect(Collectors.toList());
+		return service.list().stream().map(OrderMapper::toResponse).collect(Collectors.toList());
 	}
 
 	@GET
@@ -63,5 +61,31 @@ public class OrderController {
 		}
 
 		return Response.ok(OrderMapper.toResponse(entity)).build();
+	}
+
+	@GET
+	@Path("/{id}/completion")
+	public Response getCompletion(@PathParam("id") Long id) {
+		OrderCompletionResponseDTO completion = service.getCompletion(id);
+
+		if (completion == null) {
+			return Response.status(Response.Status.NOT_FOUND).build();
+		}
+
+		return Response.ok(completion).build();
+	}
+
+	@GET
+	@Path("/{id}/allocations")
+	public Response getAllocations(@PathParam("id") Long id) {
+		OrderEntity order = service.get(id);
+		if (order == null) {
+			return Response.status(Response.Status.NOT_FOUND).build();
+		}
+
+		List<OrderStockMovementResponseDTO> allocations = service.getAllocations(id).stream()
+				.map(OrderStockMovementMapper::toResponse).collect(Collectors.toList());
+
+		return Response.ok(allocations).build();
 	}
 }

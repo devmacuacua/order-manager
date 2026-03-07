@@ -6,7 +6,8 @@ import java.util.List;
 import javax.persistence.EntityManager;
 
 import pt.agap2.ordermanager.item.entity.ItemEntity;
-import pt.agap2.ordermanager.order.repository.OrderRepository;
+import pt.agap2.ordermanager.order.entity.OrderStockMovementEntity;
+import pt.agap2.ordermanager.order.repository.IOrderStockMovementRepository;
 import pt.agap2.ordermanager.order.repository.OrderStockMovementRepository;
 import pt.agap2.ordermanager.order.service.IOrderFulfillmentService;
 import pt.agap2.ordermanager.order.service.OrderFulfillmentService;
@@ -19,11 +20,13 @@ public class StockMovementService implements IStockMovementService {
 
 	private final IStockMovementRepository repository;
 	private final IOrderFulfillmentService fulfillmentService;
+	private final IOrderStockMovementRepository trackingRepository;
 
 	public StockMovementService(IStockMovementRepository repository) {
 		this.repository = repository;
-		this.fulfillmentService = new OrderFulfillmentService(new OrderRepository(), repository,
-				new OrderStockMovementRepository());
+		this.trackingRepository = new OrderStockMovementRepository();
+		this.fulfillmentService = new OrderFulfillmentService(
+				new pt.agap2.ordermanager.order.repository.OrderRepository(), repository, trackingRepository);
 	}
 
 	@Override
@@ -98,6 +101,16 @@ public class StockMovementService implements IStockMovementService {
 				em.getTransaction().rollback();
 			}
 			throw e;
+		} finally {
+			em.close();
+		}
+	}
+
+	@Override
+	public List<OrderStockMovementEntity> getAllocations(Long stockMovementId) {
+		EntityManager em = Jpa.em();
+		try {
+			return trackingRepository.findByStockMovementId(em, stockMovementId);
 		} finally {
 			em.close();
 		}

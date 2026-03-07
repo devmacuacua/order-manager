@@ -6,22 +6,30 @@ import java.util.List;
 import javax.persistence.EntityManager;
 
 import pt.agap2.ordermanager.item.entity.ItemEntity;
+import pt.agap2.ordermanager.order.dto.OrderCompletionResponseDTO;
 import pt.agap2.ordermanager.order.entity.OrderEntity;
+import pt.agap2.ordermanager.order.entity.OrderStockMovementEntity;
 import pt.agap2.ordermanager.order.repository.IOrderRepository;
+import pt.agap2.ordermanager.order.repository.IOrderStockMovementRepository;
 import pt.agap2.ordermanager.order.repository.OrderStockMovementRepository;
 import pt.agap2.ordermanager.shared.Jpa;
-import pt.agap2.ordermanager.stock.repository.StockMovementRepository;
 import pt.agap2.ordermanager.user.entity.UserEntity;
 
 public class OrderService implements IOrderService {
 
 	private final IOrderRepository repository;
 	private final IOrderFulfillmentService fulfillmentService;
+	private final IOrderStockMovementRepository trackingRepository;
 
+	
 	public OrderService(IOrderRepository repository) {
 		this.repository = repository;
-		this.fulfillmentService = new OrderFulfillmentService(repository, new StockMovementRepository(),
-				new OrderStockMovementRepository());
+		this.trackingRepository = new OrderStockMovementRepository();
+		this.fulfillmentService = new OrderFulfillmentService(
+				repository,
+				new pt.agap2.ordermanager.stock.repository.StockMovementRepository(),
+				trackingRepository
+		);
 	}
 
 	@Override
@@ -82,6 +90,44 @@ public class OrderService implements IOrderService {
 
 		try {
 			return repository.findById(em, id);
+		} finally {
+			em.close();
+		}
+	}
+	
+	@Override
+	public OrderCompletionResponseDTO getCompletion(Long orderId) {
+		EntityManager em = Jpa.em();
+		try {
+			OrderEntity order = repository.findById(em, orderId);
+			if (order == null) {
+				return null;
+			}
+
+			int quantity = order.getQuantity();
+			int fulfilled = order.getFulfilledQuantity();
+			int remaining = quantity - fulfilled;
+			boolean completed = fulfilled >= quantity;
+			double percentage = quantity == 0 ? 0.0 : (fulfilled * 100.0) / quantity;
+
+			return new OrderCompletionResponseDTO(
+					order.getId(),
+					quantity,
+					fulfilled,
+					remaining,
+					completed,
+					percentage
+			);
+		} finally {
+			em.close();
+		}
+	}
+
+	@Override
+	public List<OrderStockMovementEntity> getAllocations(Long orderId) {
+		EntityManager em = Jpa.em();
+		try {
+			return trackingRepository.findByOrderId(em, orderId);
 		} finally {
 			em.close();
 		}
