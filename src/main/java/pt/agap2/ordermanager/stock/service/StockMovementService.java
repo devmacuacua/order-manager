@@ -6,6 +6,10 @@ import java.util.List;
 import javax.persistence.EntityManager;
 
 import pt.agap2.ordermanager.item.entity.ItemEntity;
+import pt.agap2.ordermanager.order.repository.OrderRepository;
+import pt.agap2.ordermanager.order.repository.OrderStockMovementRepository;
+import pt.agap2.ordermanager.order.service.IOrderFulfillmentService;
+import pt.agap2.ordermanager.order.service.OrderFulfillmentService;
 import pt.agap2.ordermanager.shared.Jpa;
 import pt.agap2.ordermanager.stock.entity.StockMovementEntity;
 import pt.agap2.ordermanager.stock.mapper.StockMovementMapper;
@@ -14,9 +18,12 @@ import pt.agap2.ordermanager.stock.repository.IStockMovementRepository;
 public class StockMovementService implements IStockMovementService {
 
 	private final IStockMovementRepository repository;
+	private final IOrderFulfillmentService fulfillmentService;
 
 	public StockMovementService(IStockMovementRepository repository) {
 		this.repository = repository;
+		this.fulfillmentService = new OrderFulfillmentService(new OrderRepository(), repository,
+				new OrderStockMovementRepository());
 	}
 
 	@Override
@@ -35,6 +42,8 @@ public class StockMovementService implements IStockMovementService {
 			entity.setCreationDate(LocalDateTime.now());
 
 			repository.persist(em, entity);
+
+			fulfillmentService.fulfillPendingOrdersWithMovement(em, entity);
 
 			em.getTransaction().commit();
 			return entity;

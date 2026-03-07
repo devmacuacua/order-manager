@@ -12,5 +12,7 @@ public interface IOrderRepository {
 
 	OrderEntity findById(EntityManager em, Long id);
 
-	List<OrderEntity> findAll(EntityManager em);
+	List<OrderEntity> findAll(EntityManager em);	
+	
+	List<OrderEntity> findPendingByItem(EntityManager em, Long itemId);
 }

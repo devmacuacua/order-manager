@@ -20,14 +20,19 @@ public class StockMovementRepository implements IStockMovementRepository {
 
 	@Override
 	public List<StockMovementEntity> findAll(EntityManager em) {
-		return em.createQuery(
-				"SELECT s FROM StockMovementEntity s ORDER BY s.creationDate DESC",
-				StockMovementEntity.class
-		).getResultList();
+		return em.createQuery("SELECT s FROM StockMovementEntity s ORDER BY s.creationDate DESC",
+				StockMovementEntity.class).getResultList();
 	}
 
 	@Override
 	public void remove(EntityManager em, StockMovementEntity entity) {
 		em.remove(entity);
+	}
+
+	@Override
+	public List<StockMovementEntity> findByItem(EntityManager em, Long itemId) {
+		return em.createQuery(
+				"SELECT s FROM StockMovementEntity s WHERE s.item.id = :itemId ORDER BY s.creationDate ASC",
+				StockMovementEntity.class).setParameter("itemId", itemId).getResultList();
 	}
 }

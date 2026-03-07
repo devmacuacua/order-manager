@@ -16,4 +16,7 @@ public interface IStockMovementRepository {
 	List<StockMovementEntity> findAll(EntityManager em);
 
 	void remove(EntityManager em, StockMovementEntity entity);
+	
+	List<StockMovementEntity> findByItem(EntityManager em, Long itemId);
+	
 }

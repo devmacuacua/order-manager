@@ -8,20 +8,24 @@ import javax.persistence.EntityManager;
 import pt.agap2.ordermanager.item.entity.ItemEntity;
 import pt.agap2.ordermanager.order.entity.OrderEntity;
 import pt.agap2.ordermanager.order.repository.IOrderRepository;
+import pt.agap2.ordermanager.order.repository.OrderStockMovementRepository;
 import pt.agap2.ordermanager.shared.Jpa;
+import pt.agap2.ordermanager.stock.repository.StockMovementRepository;
 import pt.agap2.ordermanager.user.entity.UserEntity;
 
 public class OrderService implements IOrderService {
 
 	private final IOrderRepository repository;
+	private final IOrderFulfillmentService fulfillmentService;
 
 	public OrderService(IOrderRepository repository) {
 		this.repository = repository;
+		this.fulfillmentService = new OrderFulfillmentService(repository, new StockMovementRepository(),
+				new OrderStockMovementRepository());
 	}
 
 	@Override
 	public OrderEntity create(Long userId, Long itemId, Integer quantity) {
-
 		EntityManager em = Jpa.em();
 
 		try {
@@ -40,21 +44,20 @@ public class OrderService implements IOrderService {
 			order.setItem(item);
 			order.setQuantity(quantity);
 			order.setCreationDate(LocalDateTime.now());
+			order.setFulfilledQuantity(0);
 
 			repository.persist(em, order);
 
-			em.getTransaction().commit();
+			fulfillmentService.fulfillOrder(em, order);
 
+			em.getTransaction().commit();
 			return order;
 
 		} catch (Exception e) {
-
 			if (em.getTransaction().isActive()) {
 				em.getTransaction().rollback();
 			}
-
 			throw e;
-
 		} finally {
 			em.close();
 		}

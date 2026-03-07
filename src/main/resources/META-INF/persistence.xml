@@ -6,6 +6,7 @@
     <class>pt.agap2.ordermanager.item.entity.ItemEntity</class>
     <class>pt.agap2.ordermanager.stock.entity.StockMovementEntity</class>
     <class>pt.agap2.ordermanager.order.entity.OrderEntity</class>
+    <class>pt.agap2.ordermanager.order.entity.OrderStockMovementEntity</class>
 
     <properties>
       <property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver"/>
