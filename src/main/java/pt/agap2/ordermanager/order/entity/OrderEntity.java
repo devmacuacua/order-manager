@@ -140,4 +140,13 @@ public class OrderEntity {
 
 		this.fulfilledQuantity = fulfilledQuantityValue().add(allocation).value();
 	}
+	
+	public void complete() {
+
+	    if (status == OrderStatus.COMPLETED) {
+	        throw new OrderAlreadyCompletedException();
+	    }
+
+	    status = OrderStatus.COMPLETED;
+	}
 }

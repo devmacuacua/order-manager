@@ -99,4 +99,13 @@ public class StockMovementEntity {
 			throw new IllegalArgumentException("Tracked used quantity cannot exceed stock movement quantity");
 		}
 	}
+	public void removeStock(Quantity requested) {
+
+	    if (availableQuantity.isLessThan(requested)) {
+	        throw new InsufficientStockException();
+	    }
+
+	    availableQuantity =
+	        availableQuantity.subtract(requested);
+	}
 }
