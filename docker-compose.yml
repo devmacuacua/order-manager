@@ -4,12 +4,20 @@ services:
     container_name: order-manager-postgres
     environment:
       POSTGRES_DB: order_manager
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: root
+      POSTGRES_USER: order_manager
+      POSTGRES_PASSWORD: Testes2026@
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+
+  tomcat:
+    build: .
+    container_name: order-manager-tomcat
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
 
 volumes:
-  pgdata:
+  postgres_data:
