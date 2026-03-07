@@ -1,0 +1,96 @@
+package pt.agap2.ordermanager.stock.service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+import javax.persistence.EntityManager;
+
+import pt.agap2.ordermanager.item.entity.ItemEntity;
+import pt.agap2.ordermanager.shared.Jpa;
+import pt.agap2.ordermanager.stock.entity.StockMovementEntity;
+import pt.agap2.ordermanager.stock.mapper.StockMovementMapper;
+import pt.agap2.ordermanager.stock.repository.IStockMovementRepository;
+
+public class StockMovementService implements IStockMovementService {
+
+	private final IStockMovementRepository repository;
+
+	public StockMovementService(IStockMovementRepository repository) {
+		this.repository = repository;
+	}
+
+	@Override
+	public StockMovementEntity create(Long itemId, Integer quantity) {
+		EntityManager em = Jpa.em();
+		try {
+			em.getTransaction().begin();
+
+			ItemEntity item = em.find(ItemEntity.class, itemId);
+			if (item == null) {
+				em.getTransaction().rollback();
+				return null;
+			}
+
+			StockMovementEntity entity = StockMovementMapper.toEntity(item, quantity);
+			entity.setCreationDate(LocalDateTime.now());
+
+			repository.persist(em, entity);
+
+			em.getTransaction().commit();
+			return entity;
+		} catch (Exception e) {
+			if (em.getTransaction().isActive()) {
+				em.getTransaction().rollback();
+			}
+			throw e;
+		} finally {
+			em.close();
+		}
+	}
+
+	@Override
+	public List<StockMovementEntity> list() {
+		EntityManager em = Jpa.em();
+		try {
+			return repository.findAll(em);
+		} finally {
+			em.close();
+		}
+	}
+
+	@Override
+	public StockMovementEntity get(Long id) {
+		EntityManager em = Jpa.em();
+		try {
+			return repository.findById(em, id);
+		} finally {
+			em.close();
+		}
+	}
+
+	@Override
+	public boolean delete(Long id) {
+		EntityManager em = Jpa.em();
+		try {
+			em.getTransaction().begin();
+
+			StockMovementEntity entity = repository.findById(em, id);
+			if (entity == null) {
+				em.getTransaction().rollback();
+				return false;
+			}
+
+			repository.remove(em, entity);
+
+			em.getTransaction().commit();
+			return true;
+		} catch (Exception e) {
+			if (em.getTransaction().isActive()) {
+				em.getTransaction().rollback();
+			}
+			throw e;
+		} finally {
+			em.close();
+		}
+	}
+}
