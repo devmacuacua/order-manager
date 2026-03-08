@@ -14,5 +14,6 @@ RUN rm -rf /usr/local/tomcat/webapps/*
 COPY --from=build /app/target/order-manager.war /usr/local/tomcat/webapps/order-manager.war
 
 EXPOSE 8080
+EXPOSE 5005
 
 CMD ["catalina.sh", "run"]
