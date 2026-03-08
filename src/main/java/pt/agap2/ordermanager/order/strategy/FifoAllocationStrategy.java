@@ -12,72 +12,86 @@ import pt.agap2.ordermanager.stock.entity.StockMovementEntity;
 
 public class FifoAllocationStrategy implements IAllocationStrategy {
 
-	private final IOrderStockMovementRepository trackingRepository;
+    private final IOrderStockMovementRepository trackingRepository;
 
-	public FifoAllocationStrategy(IOrderStockMovementRepository trackingRepository) {
-		this.trackingRepository = trackingRepository;
-	}
+    public FifoAllocationStrategy(IOrderStockMovementRepository trackingRepository) {
+        this.trackingRepository = trackingRepository;
+    }
 
-	@Override
-	public List<AllocationDecision> allocateOrder(
-			EntityManager em,
-			OrderEntity order,
-			List<StockMovementEntity> stockMovements) {
+    @Override
+    public List<AllocationDecision> allocateOrder(
+            EntityManager em,
+            OrderEntity order,
+            List<StockMovementEntity> stockMovements) {
 
-		List<AllocationDecision> decisions = new ArrayList<>();
-		Quantity missing = order.remainingQuantityValue();
+        List<AllocationDecision> decisions = new ArrayList<>();
+        Quantity missing = order.remainingQuantityValue();
 
-		if (!missing.isPositive()) {
-			return decisions;
-		}
+        if (!missing.isPositive()) {
+            return decisions;
+        }
 
-		for (StockMovementEntity movement : stockMovements) {
-			if (!missing.isPositive()) {
-				break;
-			}
+        for (StockMovementEntity movement : stockMovements) {
+            if (!missing.isPositive()) {
+                break;
+            }
 
-			int alreadyUsed = trackingRepository.sumUsedByStockMovement(em, movement);
+            int alreadyUsed = trackingRepository.sumUsedByStockMovement(em, movement);
 
-			if (!movement.hasAvailableQuantity(alreadyUsed)) {
-				continue;
-			}
+            if (!movement.hasAvailableQuantity(alreadyUsed)) {
+                continue;
+            }
 
-			Quantity available = movement.availableQuantityValue(alreadyUsed);
-			Quantity usedNow = available.min(missing);
+            Quantity available = movement.availableQuantityValue(alreadyUsed);
+            Quantity usedNow = available.min(missing);
 
-			decisions.add(new AllocationDecision(order, movement, usedNow.value()));
-			missing = missing.subtract(usedNow);
-		}
+            if (!usedNow.isPositive()) {
+                continue;
+            }
 
-		return decisions;
-	}
+            decisions.add(new AllocationDecision(order, movement, usedNow.value()));
+            missing = missing.subtract(usedNow);
+        }
 
-	@Override
-	public List<AllocationDecision> allocateMovement(
-			EntityManager em,
-			StockMovementEntity movement,
-			List<OrderEntity> pendingOrders) {
+        return decisions;
+    }
 
-		List<AllocationDecision> decisions = new ArrayList<>();
+    @Override
+    public List<AllocationDecision> allocateMovement(
+            EntityManager em,
+            StockMovementEntity movement,
+            List<OrderEntity> pendingOrders) {
 
-		for (OrderEntity order : pendingOrders) {
-			int alreadyUsed = trackingRepository.sumUsedByStockMovement(em, movement);
+        List<AllocationDecision> decisions = new ArrayList<>();
 
-			if (!movement.hasAvailableQuantity(alreadyUsed)) {
-				break;
-			}
+        int alreadyUsed = trackingRepository.sumUsedByStockMovement(em, movement);
 
-			Quantity missing = order.remainingQuantityValue();
-			if (!missing.isPositive()) {
-				continue;
-			}
+        if (!movement.hasAvailableQuantity(alreadyUsed)) {
+            return decisions;
+        }
 
-			Quantity available = movement.availableQuantityValue(alreadyUsed);
-			Quantity usedNow = available.min(missing);
+        Quantity remainingAvailable = movement.availableQuantityValue(alreadyUsed);
 
-			decisions.add(new AllocationDecision(order, movement, usedNow.value()));
-		}
+        for (OrderEntity order : pendingOrders) {
+            if (!remainingAvailable.isPositive()) {
+                break;
+            }
 
-		return decisions;
-	}
+            Quantity missing = order.remainingQuantityValue();
+            if (!missing.isPositive()) {
+                continue;
+            }
+
+            Quantity usedNow = remainingAvailable.min(missing);
+
+            if (!usedNow.isPositive()) {
+                continue;
+            }
+
+            decisions.add(new AllocationDecision(order, movement, usedNow.value()));
+            remainingAvailable = remainingAvailable.subtract(usedNow);
+        }
+
+        return decisions;
+    }
 }

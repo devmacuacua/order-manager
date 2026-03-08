@@ -15,80 +15,86 @@ import javax.ws.rs.core.Response;
 import pt.agap2.ordermanager.ApplicationContext;
 import pt.agap2.ordermanager.order.dto.OrderCompletionResponseDTO;
 import pt.agap2.ordermanager.order.dto.OrderRequestDTO;
+import pt.agap2.ordermanager.order.dto.OrderResponseDTO;
 import pt.agap2.ordermanager.order.dto.OrderStockMovementResponseDTO;
 import pt.agap2.ordermanager.order.entity.OrderEntity;
 import pt.agap2.ordermanager.order.mapper.OrderMapper;
 import pt.agap2.ordermanager.order.mapper.OrderStockMovementMapper;
 import pt.agap2.ordermanager.order.service.IOrderService;
+import pt.agap2.ordermanager.shared.domain.exception.InvalidRequestException;
 
 @Path("/orders")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class OrderController {
 
-	private final IOrderService service;
+    private final IOrderService service;
 
-	public OrderController() {
-		this.service = ApplicationContext.orderService();
-	}
+    public OrderController() {
+        this.service = ApplicationContext.orderService();
+    }
 
-	@POST
-	public Response create(OrderRequestDTO dto) {
+    @POST
+    public Response create(OrderRequestDTO dto) {
+        validateCreateRequest(dto);
 
-		if (dto == null || dto.getItemId() == null || dto.getUserId() == null || dto.getQuantity() == null) {
-			return Response.status(Response.Status.BAD_REQUEST).build();
-		}
+        OrderEntity created = service.create(dto.getUserId(), dto.getItemId(), dto.getQuantity());
 
-		OrderEntity created = service.create(dto.getUserId(), dto.getItemId(), dto.getQuantity());
+        return Response.status(Response.Status.CREATED)
+                .entity(OrderMapper.toResponse(created))
+                .build();
+    }
 
-		if (created == null) {
-			return Response.status(Response.Status.BAD_REQUEST).entity("User or Item not found").build();
-		}
+    @GET
+    public List<OrderResponseDTO> list() {
+        return service.list()
+                .stream()
+                .map(OrderMapper::toResponse)
+                .collect(Collectors.toList());
+    }
 
-		return Response.status(Response.Status.CREATED).entity(OrderMapper.toResponse(created)).build();
-	}
+    @GET
+    @Path("/{id}")
+    public Response get(@PathParam("id") Long id) {
+        OrderEntity entity = service.get(id);
 
-	@GET
-	public List<?> list() {
-		return service.list().stream().map(OrderMapper::toResponse).collect(Collectors.toList());
-	}
+        return Response.ok(OrderMapper.toResponse(entity)).build();
+    }
 
-	@GET
-	@Path("/{id}")
-	public Response get(@PathParam("id") Long id) {
+    @GET
+    @Path("/{id}/completion")
+    public Response getCompletion(@PathParam("id") Long id) {
+        OrderCompletionResponseDTO completion = service.getCompletion(id);
 
-		OrderEntity entity = service.get(id);
+        return Response.ok(completion).build();
+    }
 
-		if (entity == null) {
-			return Response.status(Response.Status.NOT_FOUND).build();
-		}
+    @GET
+    @Path("/{id}/allocations")
+    public Response getAllocations(@PathParam("id") Long id) {
+        List<OrderStockMovementResponseDTO> allocations = service.getAllocations(id)
+                .stream()
+                .map(OrderStockMovementMapper::toResponse)
+                .collect(Collectors.toList());
 
-		return Response.ok(OrderMapper.toResponse(entity)).build();
-	}
+        return Response.ok(allocations).build();
+    }
 
-	@GET
-	@Path("/{id}/completion")
-	public Response getCompletion(@PathParam("id") Long id) {
-		OrderCompletionResponseDTO completion = service.getCompletion(id);
+    private void validateCreateRequest(OrderRequestDTO dto) {
+        if (dto == null) {
+            throw new InvalidRequestException("Order payload is required");
+        }
 
-		if (completion == null) {
-			return Response.status(Response.Status.NOT_FOUND).build();
-		}
+        if (dto.getItemId() == null) {
+            throw new InvalidRequestException("Order itemId is required");
+        }
 
-		return Response.ok(completion).build();
-	}
+        if (dto.getUserId() == null) {
+            throw new InvalidRequestException("Order userId is required");
+        }
 
-	@GET
-	@Path("/{id}/allocations")
-	public Response getAllocations(@PathParam("id") Long id) {
-		OrderEntity order = service.get(id);
-		if (order == null) {
-			return Response.status(Response.Status.NOT_FOUND).build();
-		}
-
-		List<OrderStockMovementResponseDTO> allocations = service.getAllocations(id).stream()
-				.map(OrderStockMovementMapper::toResponse).collect(Collectors.toList());
-
-		return Response.ok(allocations).build();
-	}
+        if (dto.getQuantity() == null) {
+            throw new InvalidRequestException("Order quantity is required");
+        }
+    }
 }

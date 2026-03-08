@@ -16,6 +16,7 @@ import javax.ws.rs.core.Response;
 import pt.agap2.ordermanager.ApplicationContext;
 import pt.agap2.ordermanager.order.dto.OrderStockMovementResponseDTO;
 import pt.agap2.ordermanager.order.mapper.OrderStockMovementMapper;
+import pt.agap2.ordermanager.shared.domain.exception.InvalidRequestException;
 import pt.agap2.ordermanager.stock.dto.StockMovementRequestDTO;
 import pt.agap2.ordermanager.stock.dto.StockMovementResponseDTO;
 import pt.agap2.ordermanager.stock.entity.StockMovementEntity;
@@ -27,65 +28,73 @@ import pt.agap2.ordermanager.stock.service.IStockMovementService;
 @Produces(MediaType.APPLICATION_JSON)
 public class StockMovementController {
 
-	private final IStockMovementService service;
+    private final IStockMovementService service;
 
-	public StockMovementController() {
-		this.service =  ApplicationContext.stockMovementService();
-	}
-	@POST
-	public Response create(StockMovementRequestDTO dto) {
-		if (dto == null || dto.getItemId() == null || dto.getQuantity() == null || dto.getQuantity() <= 0) {
-			return Response.status(Response.Status.BAD_REQUEST).entity("itemId and positive quantity are required")
-					.build();
-		}
+    public StockMovementController() {
+        this.service = ApplicationContext.stockMovementService();
+    }
 
-		try {
-			StockMovementEntity created = service.create(dto.getItemId(), dto.getQuantity());
-			if (created == null) {
-				return Response.status(Response.Status.BAD_REQUEST).entity("Item not found").build();
-			}
-			return Response.status(Response.Status.CREATED).entity(StockMovementMapper.toResponse(created)).build();
-		} catch (Exception e) {
-			return Response.status(Response.Status.CONFLICT).entity("Could not create stock movement").build();
-		}
-	}
+    @POST
+    public Response create(StockMovementRequestDTO dto) {
+        validateCreateRequest(dto);
 
-	@GET
-	public List<StockMovementResponseDTO> list() {
-		return service.list().stream().map(StockMovementMapper::toResponse).collect(Collectors.toList());
-	}
+        StockMovementEntity created = service.create(dto.getItemId(), dto.getQuantity());
 
-	@GET
-	@Path("/{id}")
-	public Response get(@PathParam("id") Long id) {
-		StockMovementEntity entity = service.get(id);
-		if (entity == null) {
-			return Response.status(Response.Status.NOT_FOUND).build();
-		}
-		return Response.ok(StockMovementMapper.toResponse(entity)).build();
-	}
+        return Response.status(Response.Status.CREATED)
+                .entity(StockMovementMapper.toResponse(created))
+                .build();
+    }
 
-	@DELETE
-	@Path("/{id}")
-	public Response delete(@PathParam("id") Long id) {
-		boolean removed = service.delete(id);
-		if (!removed) {
-			return Response.status(Response.Status.NOT_FOUND).build();
-		}
-		return Response.noContent().build();
-	}
+    @GET
+    public List<StockMovementResponseDTO> list() {
+        return service.list()
+                .stream()
+                .map(StockMovementMapper::toResponse)
+                .collect(Collectors.toList());
+    }
 
-	@GET
-	@Path("/{id}/allocations")
-	public Response getAllocations(@PathParam("id") Long id) {
-		StockMovementEntity entity = service.get(id);
-		if (entity == null) {
-			return Response.status(Response.Status.NOT_FOUND).build();
-		}
+    @GET
+    @Path("/{id}")
+    public Response get(@PathParam("id") Long id) {
+        StockMovementEntity entity = service.get(id);
 
-		List<OrderStockMovementResponseDTO> allocations = service.getAllocations(id).stream()
-				.map(OrderStockMovementMapper::toResponse).collect(Collectors.toList());
+        return Response.ok(StockMovementMapper.toResponse(entity)).build();
+    }
 
-		return Response.ok(allocations).build();
-	}
+    @DELETE
+    @Path("/{id}")
+    public Response delete(@PathParam("id") Long id) {
+        service.delete(id);
+
+        return Response.noContent().build();
+    }
+
+    @GET
+    @Path("/{id}/allocations")
+    public Response getAllocations(@PathParam("id") Long id) {
+        List<OrderStockMovementResponseDTO> allocations = service.getAllocations(id)
+                .stream()
+                .map(OrderStockMovementMapper::toResponse)
+                .collect(Collectors.toList());
+
+        return Response.ok(allocations).build();
+    }
+
+    private void validateCreateRequest(StockMovementRequestDTO dto) {
+        if (dto == null) {
+            throw new InvalidRequestException("Stock movement payload is required");
+        }
+
+        if (dto.getItemId() == null) {
+            throw new InvalidRequestException("Stock movement itemId is required");
+        }
+
+        if (dto.getQuantity() == null) {
+            throw new InvalidRequestException("Stock movement quantity is required");
+        }
+
+        if (dto.getQuantity() <= 0) {
+            throw new InvalidRequestException("Stock movement quantity must be greater than zero");
+        }
+    }
 }

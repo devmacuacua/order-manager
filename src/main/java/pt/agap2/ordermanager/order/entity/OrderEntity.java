@@ -12,6 +12,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import pt.agap2.ordermanager.item.entity.ItemEntity;
+import pt.agap2.ordermanager.shared.domain.exception.InvalidOrderAllocationException;
+import pt.agap2.ordermanager.shared.domain.exception.OrderAlreadyCompletedException;
 import pt.agap2.ordermanager.shared.domain.valueobject.Quantity;
 import pt.agap2.ordermanager.user.entity.UserEntity;
 
@@ -128,16 +130,23 @@ public class OrderEntity {
 	}
 
 	public void allocate(int quantityToAllocate) {
+
 		Quantity allocation = Quantity.positive(quantityToAllocate);
+		Quantity remaining = remainingQuantityValue();
 
 		if (isCompleted()) {
-			throw new IllegalStateException("Order is already completed");
+			throw new OrderAlreadyCompletedException("Order is already completed");
 		}
 
-		if (allocation.greaterThan(remainingQuantityValue())) {
-			throw new IllegalArgumentException("Allocation quantity exceeds remaining order quantity");
+		if (allocation.greaterThan(remaining)) {
+			throw new InvalidOrderAllocationException(
+				allocation.value(),
+				remaining.value()
+			);
 		}
 
-		this.fulfilledQuantity = fulfilledQuantityValue().add(allocation).value();
+		this.fulfilledQuantity = fulfilledQuantityValue()
+				.add(allocation)
+				.value();
 	}
 }

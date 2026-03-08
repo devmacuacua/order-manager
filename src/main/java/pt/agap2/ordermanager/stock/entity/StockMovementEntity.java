@@ -12,6 +12,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import pt.agap2.ordermanager.item.entity.ItemEntity;
+import pt.agap2.ordermanager.shared.domain.exception.StockMovementNotAllowedException;
 import pt.agap2.ordermanager.shared.domain.valueobject.Quantity;
 
 @Entity
@@ -92,11 +93,15 @@ public class StockMovementEntity {
 
 	private void validateTrackedQuantity(int alreadyUsed) {
 		if (alreadyUsed < 0) {
-			throw new IllegalArgumentException("Tracked used quantity cannot be negative");
+			throw new StockMovementNotAllowedException(
+				"Tracked used quantity cannot be negative"
+			);
 		}
 
 		if (alreadyUsed > quantity) {
-			throw new IllegalArgumentException("Tracked used quantity cannot exceed stock movement quantity");
+			throw new StockMovementNotAllowedException(
+				"Tracked used quantity cannot exceed stock movement quantity"
+			);
 		}
 	}
 }

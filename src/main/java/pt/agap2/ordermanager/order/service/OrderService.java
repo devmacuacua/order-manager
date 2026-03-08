@@ -13,6 +13,7 @@ import pt.agap2.ordermanager.order.entity.OrderEntity;
 import pt.agap2.ordermanager.order.entity.OrderStockMovementEntity;
 import pt.agap2.ordermanager.order.repository.IOrderRepository;
 import pt.agap2.ordermanager.order.repository.IOrderStockMovementRepository;
+import pt.agap2.ordermanager.shared.domain.exception.OrderNotFoundException;
 import pt.agap2.ordermanager.shared.infrastructure.Jpa;
 import pt.agap2.ordermanager.shared.infrastructure.Log;
 import pt.agap2.ordermanager.user.entity.UserEntity;
@@ -58,7 +59,20 @@ public class OrderService implements IOrderService {
 
 			repository.persist(em, order);
 
-			fulfillmentService.fulfillOrder(em, order);
+			try {
+				fulfillmentService.fulfillOrder(em, order);
+			} catch (RuntimeException e) {
+				logger.error(
+					"ERROR_TRYING_TO_FULFILL_ORDER_ON_CREATE orderId={} userId={} itemId={} quantity={}",
+					order.getId(),
+					user.getId(),
+					item.getId(),
+					order.getQuantity(),
+					e
+				);
+			}
+
+			em.getTransaction().commit();
 
 			logger.info(
 					"ORDER_CREATED id={} userId={} itemId={} quantity={}",
@@ -68,9 +82,7 @@ public class OrderService implements IOrderService {
 					order.getQuantity()
 			);
 
-			em.getTransaction().commit();
 			return order;
-
 		} catch (Exception e) {
 			logger.error("ERROR_CREATING_ORDER userId={} itemId={} quantity={}", userId, itemId, quantity, e);
 			if (em.getTransaction().isActive()) {
@@ -94,12 +106,18 @@ public class OrderService implements IOrderService {
 
 	@Override
 	public OrderEntity get(Long id) {
-		EntityManager em = Jpa.em();
-		try {
-			return repository.findById(em, id);
-		} finally {
-			em.close();
-		}
+	    EntityManager em = Jpa.em();
+	    try {
+	        OrderEntity entity = repository.findById(em, id);
+
+	        if (entity == null) {
+	            throw new OrderNotFoundException(id);
+	        }
+
+	        return entity;
+	    } finally {
+	        em.close();
+	    }
 	}
 
 	@Override

@@ -9,11 +9,11 @@ public interface IStockMovementService {
 
 	StockMovementEntity create(Long itemId, Integer quantity);
 
-	List<StockMovementEntity> list();
+    List<StockMovementEntity> list();
 
-	StockMovementEntity get(Long id);
+    StockMovementEntity get(Long id);
 
-	boolean delete(Long id);
-	
-	List<OrderStockMovementEntity> getAllocations(Long stockMovementId);
+    void delete(Long id);
+
+    List<OrderStockMovementEntity> getAllocations(Long stockMovementId);
 }
